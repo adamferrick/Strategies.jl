@@ -1,0 +1,39 @@
+```julia
+using Strategies
+
+struct SlowFast <: Strategy
+    slow_size::UInt64
+    slow_window::Vector{Float64}
+    fast_size::UInt64
+    fast_window::Vector{Float64}
+end
+
+SlowFast(slow_size, fast_size) = SlowFast(
+    slow_size,
+    Vector{Float64}(undef, slow_size),
+    fast_size,
+    Vector{Float64}(undef, fast_size),
+)
+```
+
+```julia
+function Strategies.update(s::SlowFast, bars::Dict{String, Bar})
+    [Order(ticker, 1) for ticker in keys(bars)]
+end
+```
+
+```julia
+using DataFrames, CSV, Dates
+bars = DataFrame(CSV.File("../data/eurusd.csv", types = [DateTime, Float64, Float64, Float64, Float64, Float64, Float64], silencewarnings = true))
+dropmissing!(bars)
+rename!(bars, :Date => :datetime)
+rename!(bars, :Open => :open)
+rename!(bars, :High => :high)
+rename!(bars, :Low => :low)
+rename!(bars, :Close => :close)
+rename!(bars, :Volume => :volume)
+```
+
+```julia
+backtest(SlowFast(10, 40), bars.datetime, Dict("EUR" => bars), 100000.)
+```
