@@ -30,10 +30,22 @@ end
 function backtest(s::Strategy, times, assets::Dict{String, DataFrame}, initial_liquidity)
     n = length(times)
     new_orders = []
+    liquidity = initial_liquidity
     liquidity_curve = zeros(n)
-    liquidity_curve[1] = initial_liquidity
+    liquidity_curve[1] = liquidity
+    assets_owned = Dict{String, Float64}()
     assets_owned_curves = Dict{String, Vector{Float64}}()
+    active_orders = Vector{Tuple{UInt64, Order}}()
+    trade_history = DataFrame(
+        ticker = String[],
+        size = Number[],
+        sl = Float64[],
+        tp = Float64[],
+        entry_price = Float64[],
+        exit_price = Union{Float64, Nothing}[],
+    )
     for ticker in keys(assets)
+        assets_owned[ticker] = 0
         assets_owned_curves[ticker] = zeros(n)
     end
 
@@ -48,17 +60,72 @@ function backtest(s::Strategy, times, assets::Dict{String, DataFrame}, initial_l
                 assets[ticker].volume[i],
             )
         end
+        for active_order in active_orders
+            ticker = active_order[2].ticker
+            size = active_order[2].size
+            sl = active_order[2].sl
+            tp = active_order[2].tp
+            open = bars[ticker].open
+            high = bars[ticker].high
+            low = bars[ticker].low
+            close = bars[ticker].close
+            if size < 0
+                sl *= -1
+                tp *= -1
+                open *= -1
+                high *= -1
+                low *= -1
+                close *= -1
+            end
+            if open < sl || open > tp
+                liquidity += bars[ticker].open * size
+                assets_owned[ticker] -= size
+                trade_history.exit_price[active_order[1]] = bars[ticker].open
+            elseif low < sl
+                liquidity += active_order[2].sl * size
+                assets_owned[ticker] -= size
+                trade_history.exit_price[active_order[1]] = active_order[2].sl
+            elseif high > tp
+                liquidity += active_order[2].tp * size
+                assets_owned[ticker] -= size
+                trade_history.exit_price[active_order[1]] = active_order[2].tp
+            end
+        end
+        filter!(
+            x -> begin
+                high = bars[x[2].ticker].high
+                low = bars[x[2].ticker].low
+                return low < x[2].sl || low > x[2].tp || high > x[2].tp || high < x[2].sl
+            end,
+            active_orders
+        )
         for order in new_orders
-            liquidity_curve[i] = liquidity_curve[i-1] - order.size * bars[order.ticker].open
-            assets_owned_curves[order.ticker][i] = assets_owned_curves[order.ticker][i-1] + order.size
+            liquidity -= order.size * bars[order.ticker].open
+            assets_owned[order.ticker] += order.size
+            push!(trade_history, (
+                order.ticker,
+                order.size,
+                order.sl,
+                order.tp,
+                bars[order.ticker].open,
+                nothing,
+            ))
+            push!(active_orders, (nrow(trade_history), order))
+        end
+        liquidity_curve[i] = liquidity
+        for ticker in keys(assets)
+            assets_owned_curves[ticker][i] = assets_owned[ticker]
         end
         new_orders = update(s, bars)
     end
 
     (
+        ending_liquidity = liquidity,
+        ending_assets_owned = assets_owned,
         liquidity_curve = liquidity_curve,
         assets_owned_curves = assets_owned_curves,
         equity_curve = compute_equity_curve(liquidity_curve, assets_owned_curves, assets),
+        trade_history = trade_history,
     )
 end
 

@@ -18,7 +18,7 @@ SlowFast(slow_size, fast_size) = SlowFast(
 
 ```julia
 function Strategies.update(s::SlowFast, bars::Dict{String, Bar})
-    [Order(ticker, 1) for ticker in keys(bars)]
+    [Order(ticker, -1) for ticker in keys(bars)]
 end
 ```
 
