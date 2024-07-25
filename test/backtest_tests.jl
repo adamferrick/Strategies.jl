@@ -1,24 +1,17 @@
 
 @testset "Testset 1" begin
-    using Dates
+    using DataFrames
 
     struct MockStrategy <: Strategy end
-    function Strategies.update(s::MockStrategy, bars::Dict{String, Bar})
-        [Order(ticker, 1)]
+    function Strategies.update(s::MockStrategy, bars::Dict{String, DataFrameRow})
+        [Order("asset", 1)]
     end
     mock = MockStrategy()
-    bars = [
-        Bar(1, 1, 1, 1, 1)
-    ]
-    backtest(
+    result = backtest(
         mock,
-        [Date(2000, 1, 1), Date(2000, 1, 2), Date(2000, 1, 3)],
-        Dict("asset1" => [
-            Bar(1., 1., 1., 1., 0.),
-            Bar(2., 2., 2., 2., 0.),
-            Bar(3., 3., 3., 3., 0.),
-        ]),
+        Dict("asset" => DataFrame(open=[1, 2, 3], high=[1, 2, 3], low=[1, 2, 3], close=[1, 2, 3])),
         10.,
     )
-    @test true == true
+    @test result.ending_liquidity == 5.
+    @test result.ending_assets_owned["asset"] == 2.
 end
