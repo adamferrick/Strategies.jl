@@ -17,13 +17,15 @@ SlowFast(slow_size, fast_size) = SlowFast(
 ```
 
 ```julia
-function Strategies.update(s::SlowFast, bars::Dict{String, Bar})
+using DataFrames
+
+function Strategies.update(s::SlowFast, bars::Dict{String, DataFrameRow})
     [Order(ticker, -1) for ticker in keys(bars)]
 end
 ```
 
 ```julia
-using DataFrames, CSV, Dates
+using CSV, Dates
 bars = DataFrame(CSV.File("../data/eurusd.csv", types = [DateTime, Float64, Float64, Float64, Float64, Float64, Float64], silencewarnings = true))
 dropmissing!(bars)
 rename!(bars, :Date => :datetime)
@@ -35,5 +37,5 @@ rename!(bars, :Volume => :volume)
 ```
 
 ```julia
-backtest(SlowFast(10, 40), bars.datetime, Dict("EUR" => bars), 100000.)
+backtest(SlowFast(10, 40), Dict("EUR" => bars), 100000.)
 ```
