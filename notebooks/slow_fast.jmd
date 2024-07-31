@@ -37,5 +37,5 @@ rename!(bars, :Volume => :volume)
 ```
 
 ```julia
-backtest(SlowFast(10, 40), Dict("EUR" => bars), 100000.)
+backtest(SlowFast(10, 40), Dict("EUR" => bars), 100000., 0.)
 ```

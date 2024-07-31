@@ -1,3 +1,12 @@
+spread(price::Float64, commission::Float64) = (price * (1 - commission), price * (1 + commission))
+
+function price_with_commission(price::Float64, commission::Float64, is_sell::Bool)
+    (bid, ask) = spread(price, commission)
+    is_sell ? bid : ask
+end
+
+entry_price(o::Order, bar::DataFrameRow, commission::Float64) = price_with_commission(bar.open, commission, o.size < 0)
+
 function exit_price(o::Order, bar::DataFrameRow)
     sl = o.sl
     tp = o.tp
@@ -23,7 +32,10 @@ function exit_price(o::Order, bar::DataFrameRow)
     return nothing
 end
 
-function backtest(s::Strategy, assets::Dict{String, DataFrame}, initial_liquidity)
+function exit_price_commission_adjusted()
+end
+
+function backtest(s::Strategy, assets::Dict{String, DataFrame}, initial_liquidity, commission)
     n = nrow(assets[iterate(keys(assets))[1]])
     new_orders = []
     liquidity = initial_liquidity
@@ -53,14 +65,16 @@ function backtest(s::Strategy, assets::Dict{String, DataFrame}, initial_liquidit
         for active_order in active_orders
             price = exit_price(active_order[2], bars[active_order[2].ticker])
             if price != nothing
-                liquidity += price * active_order[2].size
+                exit_price_commission_adjusted = price_with_commission(price, commission, active_order[2].size > 0)
+                liquidity += exit_price_commission_adjusted * active_order[2].size
                 assets_owned -= active_order[2].size
                 trade_history.exit_price[active_order[1]] = price
             end
         end
         filter!(x -> exit_price(x[2], bars[x[2].ticker]) == nothing, active_orders)
         for order in new_orders
-            liquidity -= order.size * bars[order.ticker].open
+            price = entry_price(order, bars[order.ticker], commission)
+            liquidity -= order.size * price
             assets_owned[order.ticker] += order.size
             push!(trade_history, (
                 order.ticker,
