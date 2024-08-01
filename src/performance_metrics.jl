@@ -13,3 +13,16 @@ function maximum_drawdown_duration(equity_curve)
     end
     max_duration
 end
+
+function maximum_drawdown(equity_curve)
+    equity_high = 0
+    max_drawdown = 0
+    for i in 1:length(equity_curve)
+        equity_high = max(equity_curve[i], equity_high)
+        max_drawdown = max(
+            (equity_high - equity_curve[i]) / equity_high,
+            max_drawdown,
+        )
+    end
+    max_drawdown
+end

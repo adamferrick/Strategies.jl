@@ -10,6 +10,6 @@ include("backtest.jl")
 export backtest
 
 include("performance_metrics.jl")
-export maximum_drawdown_duration
+export maximum_drawdown_duration, maximum_drawdown
 
 end

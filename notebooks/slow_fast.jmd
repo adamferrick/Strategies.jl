@@ -43,3 +43,7 @@ result = backtest(SlowFast(10, 40), Dict("EUR" => bars), 100000., 0.)
 ```julia
 maximum_drawdown_duration(result.equity_curve)
 ```
+
+```julia
+maximum_drawdown(result.equity_curve)
+```
