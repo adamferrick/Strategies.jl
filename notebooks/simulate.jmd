@@ -3,7 +3,7 @@ using Strategies, Plots
 ```
 
 ```julia
-s = gbm_trajectory(100, 0, 0.8, 0.1, 50)
+s = gbm_trajectory(100, 0.04, 0.18, 1 / 365, 1000)
 ```
 
 ```julia
