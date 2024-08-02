@@ -1,0 +1,11 @@
+```julia
+using Strategies, Plots
+```
+
+```julia
+s = gbm_trajectory(100, 0, 0.8, 0.1, 50)
+```
+
+```julia
+plot(s)
+```
