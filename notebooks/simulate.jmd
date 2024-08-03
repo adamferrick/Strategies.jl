@@ -9,3 +9,25 @@ s = gbm_trajectory(100, 0.04, 0.18, 1 / 365, 1000)
 ```julia
 plot(s)
 ```
+
+```julia
+s0 = [75., 110., 100., 63.]
+volatilities = [0.045, 0.066, 0.075, 0.054]
+correlation_matrix = [
+    1.0 0.75 0.80 0.95;
+    0.75 1.0 0.63 0.74;
+    0.80 0.63 1.0 0.85;
+    0.95 0.74 0.85 1.0;
+]
+n = 500
+r = 0.03
+dt = 1 / 252
+s = correlated_gbm_trajectories(s0, r, volatilities, correlation_matrix, dt, n)
+```
+
+```julia
+plot(s[1])
+plot!(s[2])
+plot!(s[3])
+plot!(s[4])
+```
