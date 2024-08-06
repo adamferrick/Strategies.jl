@@ -1,0 +1,11 @@
+```julia
+using Strategies
+```
+
+```julia
+s = [i for i in 1:1000]
+```
+
+```julia
+series_to_ohlc(s, UInt(10))
+```
