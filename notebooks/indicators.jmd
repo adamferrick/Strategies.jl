@@ -1,0 +1,33 @@
+```julia
+using Strategies
+```
+
+```julia
+sma = SMA(4)
+push!(sma, 1.)
+sma.sma
+```
+
+```julia
+push!(sma, 2.)
+sma.sma
+```
+
+```julia
+push!(sma, 3.)
+sma.sma
+```
+
+```julia
+push!(sma, 4.)
+sma.sma
+```
+
+```julia
+push!(sma, 5.)
+sma.sma
+```
+
+```julia
+sma.values
+```

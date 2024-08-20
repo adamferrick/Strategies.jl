@@ -20,4 +20,7 @@ export gbm_trajectory, correlated_gbm_trajectories
 include("utils.jl")
 export series_to_ohlc
 
+include("indicators.jl")
+export SMA, push!
+
 end
