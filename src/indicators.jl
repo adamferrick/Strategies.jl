@@ -1,22 +1,22 @@
 mutable struct SMA
     const n::Int
     values::Vector{Float64}
-    sma
+    indicator
 end
 
 SMA(n) = SMA(n, Vector{Float64}(), undef)
 
-function Base.push!(sma::SMA, value::Float64)
+function Base.push!(sma::SMA, item::Float64)
     if length(sma.values) === 0
-        push!(sma.values, value)
-        sma.sma = value
+        push!(sma.values, item)
+        sma.indicator = item
     elseif length(sma.values) < sma.n
-        push!(sma.values, value)
-        sma.sma = (sma.sma * (length(sma.values) - 1) + value) / length(sma.values)
+        push!(sma.values, item)
+        sma.indicator = (sma.indicator * (length(sma.values) - 1) + item) / length(sma.values)
     else
-        push!(sma.values, value)
+        push!(sma.values, item)
         last_value = popfirst!(sma.values)
-        sma.sma -= last_value / length(sma.values)
-        sma.sma += value / length(sma.values)
+        sma.indicator -= last_value / length(sma.values)
+        sma.indicator += item / length(sma.values)
     end
 end
