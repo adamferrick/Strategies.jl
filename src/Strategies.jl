@@ -21,6 +21,6 @@ include("utils.jl")
 export series_to_ohlc
 
 include("indicators.jl")
-export SMA, push!
+export SMA, update!
 
 end

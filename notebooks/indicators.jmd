@@ -4,27 +4,27 @@ using Strategies
 
 ```julia
 sma = SMA(4)
-push!(sma, 1.)
+update!(sma, 1.)
 sma.indicator
 ```
 
 ```julia
-push!(sma, 2.)
+update!(sma, 2.)
 sma.indicator
 ```
 
 ```julia
-push!(sma, 3.)
+update!(sma, 3.)
 sma.indicator
 ```
 
 ```julia
-push!(sma, 4.)
+update!(sma, 4.)
 sma.indicator
 ```
 
 ```julia
-push!(sma, 5.)
+update!(sma, 5.)
 sma.indicator
 ```
 

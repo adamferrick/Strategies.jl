@@ -6,17 +6,17 @@ end
 
 SMA(n) = SMA(n, Vector{Float64}(), undef)
 
-function Base.push!(sma::SMA, item::Float64)
-    if length(sma.values) === 0
-        push!(sma.values, item)
-        sma.indicator = item
-    elseif length(sma.values) < sma.n
-        push!(sma.values, item)
-        sma.indicator = (sma.indicator * (length(sma.values) - 1) + item) / length(sma.values)
+function update!(indicator::SMA, item::Float64)
+    if length(indicator.values) === 0
+        push!(indicator.values, item)
+        indicator.indicator = item
+    elseif length(indicator.values) < indicator.n
+        push!(indicator.values, item)
+        indicator.indicator = (indicator.indicator * (length(indicator.values) - 1) + item) / length(indicator.values)
     else
-        push!(sma.values, item)
-        last_value = popfirst!(sma.values)
-        sma.indicator -= last_value / length(sma.values)
-        sma.indicator += item / length(sma.values)
+        push!(indicator.values, item)
+        last_value = popfirst!(indicator.values)
+        indicator.indicator -= last_value / length(indicator.values)
+        indicator.indicator += item / length(indicator.values)
     end
 end
