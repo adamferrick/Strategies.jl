@@ -7,6 +7,25 @@ end
 
 entry_price(o::Order, bar::DataFrameRow, commission::Float64) = price_with_commission(bar.open, commission, o.size < 0)
 
+function process_active_orders!(active_orders, trade_history, bars, commission)
+    liquidity_delta = 0
+    assets_owned_deltas = Dict{String, Float64}()
+    for ticker in keys(bars)
+        assets_owned_deltas[ticker] = 0
+    end
+    for active_order in active_orders
+        price = exit_price(active_order[2], bars[active_order[2].ticker])
+        if price != nothing
+            exit_price_commission_adjusted = price_with_commission(price, commission, active_order[2].size > 0)
+            liquidity_delta += exit_price_commission_adjusted * active_order[2].size
+            assets_owned_deltas[active_order[2].ticker] -= active_order[2].size
+            trade_history.exit_price[active_order[1]] = price
+        end
+    end
+    filter!(x -> exit_price(x[2], bars[x[2].ticker]) == nothing, active_orders)
+    (liquidity_delta, assets_owned_deltas)
+end
+
 function exit_price(o::Order, bar::DataFrameRow)
     sl = o.sl
     tp = o.tp
@@ -30,9 +49,6 @@ function exit_price(o::Order, bar::DataFrameRow)
         return o.tp
     end
     return nothing
-end
-
-function exit_price_commission_adjusted()
 end
 
 function backtest(s::Strategy, assets::Dict{String, DataFrame}, initial_liquidity, commission)
@@ -62,16 +78,13 @@ function backtest(s::Strategy, assets::Dict{String, DataFrame}, initial_liquidit
         for ticker in keys(assets)
             bars[ticker] = assets[ticker][i, :]
         end
-        for active_order in active_orders
-            price = exit_price(active_order[2], bars[active_order[2].ticker])
-            if price != nothing
-                exit_price_commission_adjusted = price_with_commission(price, commission, active_order[2].size > 0)
-                liquidity += exit_price_commission_adjusted * active_order[2].size
-                assets_owned -= active_order[2].size
-                trade_history.exit_price[active_order[1]] = price
-            end
+
+        (liquidity_delta, assets_owned_deltas) = process_active_orders!(active_orders, trade_history, bars, commission)
+        liquidity += liquidity_delta
+        for ticker in keys(assets)
+            assets_owned[ticker] += assets_owned_deltas[ticker]
         end
-        filter!(x -> exit_price(x[2], bars[x[2].ticker]) == nothing, active_orders)
+
         for order in new_orders
             price = entry_price(order, bars[order.ticker], commission)
             liquidity -= order.size * price

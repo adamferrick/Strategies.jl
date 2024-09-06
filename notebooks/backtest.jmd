@@ -20,7 +20,7 @@ SlowFast(slow_size, fast_size) = SlowFast(
 using DataFrames
 
 function Strategies.update(s::SlowFast, bars::Dict{String, DataFrameRow})
-    [Order(ticker, -1) for ticker in keys(bars)]
+    [Order(ticker, 1, bars[ticker].open - 0.01, bars[ticker].open + 0.01) for ticker in keys(bars)]
 end
 ```
 
